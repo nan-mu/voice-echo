@@ -22,7 +22,6 @@ static RFFT_ARRAY_B: CsMutex<[f32; crate::SAMPLE_LEN]> =
     Mutex::new(RefCell::new(Some([0.0; crate::SAMPLE_LEN])));
 static RFFT_INDEX: CsMutex<u16> = Mutex::new(RefCell::new(Some(0)));
 static AB_FLAG: CsMutex<bool> = Mutex::new(RefCell::new(Some(false)));
-static GAIN: CsMutex<f32> = Mutex::new(RefCell::new(Some(1.0)));
 
 #[handler]
 pub fn adc_to_rfft() {
@@ -65,8 +64,8 @@ pub fn adc_to_rfft() {
     });
 }
 
-#[embassy_executor::task]
-async fn rfft() {
+pub async fn rfft() -> f32 {
+    let mut gain = 0.0;
     critical_section::with(|cs| {
         let rfft_array = match *AB_FLAG.borrow(cs).borrow_mut().as_mut().unwrap() {
             true => &RFFT_ARRAY_A,
@@ -75,6 +74,7 @@ async fn rfft() {
         let mut rfft_array = rfft_array.borrow(cs).borrow_mut();
         let rfft_array = rfft_array.as_mut().unwrap();
         let spectrum = microfft::real::rfft_1024(rfft_array);
-        *GAIN.borrow(cs).borrow_mut().as_mut().unwrap() = spectrum[GAIN_INDEX].l1_norm();
+        gain = spectrum[GAIN_INDEX].l1_norm();
     });
+    gain
 }

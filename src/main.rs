@@ -4,6 +4,7 @@
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
 use esp_hal::{
     analog::adc::{Adc, AdcConfig, Attenuation},
@@ -20,6 +21,8 @@ use esp_hal::{
     system::SystemControl,
     timer::{timg::TimerGroup, ErasedTimer, OneShotTimer, PeriodicTimer},
 };
+use fugit::Rate;
+use log::{debug, LevelFilter};
 
 type CsMutex<T> = Mutex<RefCell<Option<T>>>;
 
@@ -48,34 +51,33 @@ const GAIN_INDEX: usize = TARGET_FREQ as usize * SAMPLE_LEN / SAMPLE_FREQ as usi
 
 #[main]
 async fn main(_spawner: Spawner) {
-    // 初始化系统寄存器组
+    // 初始化系统寄存器组和日志
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    esp_println::logger::init_logger(LevelFilter::Debug);
 
-    // 初始化动态分配堆
+    debug!("初始化动态分配堆");
     init_heap();
 
-    // 初始化异步时钟，使用timer group 0
+    debug!("初始化异步时钟，使用timer group 0");
     let timg0 = TimerGroup::new(peripherals.TIMG0, &clocks, None);
     let timer0: ErasedTimer = timg0.timer0.into();
     let timers = [OneShotTimer::new(timer0)];
     let timers = mk_static!([OneShotTimer<ErasedTimer>; 1], timers);
     esp_hal_embassy::init(&clocks, timers);
 
-    // 初始化中断时钟，使用timer group 1
+    debug!("初始化中断时钟，使用timer group 1");
     let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks, None);
     let timer0: ErasedTimer = timg1.timer0.into();
     let mut timer = PeriodicTimer::new(timer0);
-    timer.set_interrupt_handler(listen::adc_to_rfft);
-    interrupt::enable(Interrupt::TG1_T0_LEVEL, Priority::Priority1).unwrap();
 
-    // 初始化引脚
+    debug!("初始化引脚");
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
     let adc_pin = io.pins.gpio2; //模拟引脚，输入PCM麦克风信号
     let pwm_pin = io.pins.gpio0; // 数字引脚，输出PWM控制蜂鸣器
 
-    // 初始化ADC
+    debug!("初始化ADC");
     // 这里是三种校准模式，分别为基础校准、线性校准和曲线校准。精度依次提高，速度依次下降。
     // type AdcCal = esp_hal::analog::adc::AdcCalBasic<peripherals::ADC1>;
     type AdcCal = esp_hal::analog::adc::AdcCalLine<peripherals::ADC1>;
@@ -87,7 +89,7 @@ async fn main(_spawner: Spawner) {
 
     // let pin_mv = block!(adc1.read_oneshot(adc1_pin)).unwrap();
 
-    // 初始化PWM
+    debug!("初始化PWM");
     let mut pwm_controller = Ledc::new(peripherals.LEDC, &clocks); // pwm控制器，提供pwm（ledc）的寄存器访问接口
     pwm_controller.set_global_slow_clock(LSGlobalClkSource::APBClk); // 链接全局慢速时钟
     let mut pwm_timer = pwm_controller.get_timer::<LowSpeed>(timer::Number::Timer1);
@@ -107,15 +109,26 @@ async fn main(_spawner: Spawner) {
         })
         .unwrap();
 
+    let sample_freq = Rate::<u32, 1, 1>::Hz(SAMPLE_FREQ);
+    let sample_cycle = sample_freq.into_duration::<1, 1_000_000>().into();
+    debug!("发射时钟中断，周期：{}", sample_cycle);
+    timer.start(sample_cycle).unwrap();
+    timer.set_interrupt_handler(listen::adc_to_rfft);
     timer.enable_interrupt(true);
-    timer
-        .start((SAMPLE_FREQ).Hz::<1, 1_000_000>().into_duration().into())
-        .unwrap();
     critical_section::with(|cs| {
         listen::TIMER1.borrow(cs).replace(Some(timer));
         listen::ADC1.borrow(cs).replace(Some(adc1));
         listen::ADC_PIN.borrow(cs).replace(Some(adc_pin));
     });
+    interrupt::enable(Interrupt::TG1_T0_LEVEL, Priority::Priority1).unwrap();
 
-    loop {}
+    loop {
+        // Wait for 4 seconds
+        Timer::after(Duration::from_secs(4)).await;
+
+        // // Join the rfft function
+        // let gain = listen::rfft().await;
+
+        // debug!("Gain: {}", gain);
+    }
 }
