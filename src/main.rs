@@ -8,7 +8,7 @@ use esp_backtrace as _;
 use esp_hal::{
     analog::adc::{Adc, AdcConfig, Attenuation},
     clock::ClockControl,
-    gpio::{GpioPin, Input, Io, Pull},
+    gpio::Io,
     interrupt::{self, Priority},
     ledc::{
         channel,
@@ -18,17 +18,14 @@ use esp_hal::{
     peripherals::{self, Interrupt, Peripherals},
     prelude::*,
     system::SystemControl,
-    timer::{
-        systimer::SystemTimer,
-        timg::{self, TimerGroup},
-        ErasedTimer, OneShotTimer, PeriodicTimer,
-    },
+    timer::{timg::TimerGroup, ErasedTimer, OneShotTimer, PeriodicTimer},
 };
-use nb::block;
 
 type CsMutex<T> = Mutex<RefCell<Option<T>>>;
 
 mod listen;
+#[macro_use]
+mod macros;
 
 extern crate alloc;
 
@@ -44,15 +41,10 @@ fn init_heap() {
     }
 }
 
-// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
-macro_rules! mk_static {
-    ($t:ty,$val:expr) => {{
-        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
-        #[deny(unused_attributes)]
-        let x = STATIC_CELL.uninit().write(($val));
-        x
-    }};
-}
+const TARGET_FREQ: u32 = 6000;
+const SAMPLE_FREQ: u32 = TARGET_FREQ * 4;
+const SAMPLE_LEN: usize = 1024;
+const GAIN_INDEX: usize = TARGET_FREQ as usize * SAMPLE_LEN / SAMPLE_FREQ as usize;
 
 #[main]
 async fn main(_spawner: Spawner) {
@@ -103,7 +95,7 @@ async fn main(_spawner: Spawner) {
         .configure(config::Config {
             duty: config::Duty::Duty5Bit,
             clock_source: LSClockSource::APBClk,
-            frequency: 5.kHz(),
+            frequency: TARGET_FREQ.Hz(),
         })
         .unwrap();
     let mut pwm_channel = pwm_controller.get_channel(channel::Number::Channel0, pwm_pin);
@@ -116,7 +108,9 @@ async fn main(_spawner: Spawner) {
         .unwrap();
 
     timer.enable_interrupt(true);
-    timer.start(1u64.secs()).unwrap();
+    timer
+        .start((SAMPLE_FREQ).Hz::<1, 1_000_000>().into_duration().into())
+        .unwrap();
     critical_section::with(|cs| {
         listen::TIMER1.borrow(cs).replace(Some(timer));
         listen::ADC1.borrow(cs).replace(Some(adc1));

@@ -40,6 +40,7 @@ embassy-time = { version = "0.3", optional = true }
 static_cell = "2.1.0"
 nb = { version = "1.1.0" }
 critical-section = "1.1.2"
+fugit = "0.3.7"
 
 [features]
 default = ["embassy"]
