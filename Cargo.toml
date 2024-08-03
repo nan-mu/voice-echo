@@ -41,14 +41,20 @@ static_cell = "2.1.0"
 nb = { version = "1.1.0" }
 critical-section = "1.1.2"
 fugit = "0.3.7"
+embassy-time-driver = "0.1.0"
 
 [features]
 default = ["embassy"]
 log = ["embassy-executor?/log"]
-defmt = ["esp-hal-embassy/defmt", "embassy-executor?/defmt"]
+defmt = [
+    "esp-hal-embassy/defmt",
+    "embassy-executor?/defmt",
+    "embassy-time/defmt-timestamp-uptime",
+]
 embassy = [
     "embassy-executor",
     "embassy-time",
     "embassy-executor/task-arena-size-20480",
 ]
 esp32c3 = ["esp-hal-embassy/esp32c3"]
+embassy-generic-timers = ["embassy-time/generic-queue"]

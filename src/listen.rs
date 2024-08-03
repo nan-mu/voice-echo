@@ -8,6 +8,7 @@ use esp_hal::{
     prelude::*,
     timer::{ErasedTimer, PeriodicTimer},
 };
+use log::debug;
 use nb::block;
 
 pub static TIMER1: CsMutex<PeriodicTimer<ErasedTimer>> = Mutex::new(RefCell::new(None));
@@ -74,6 +75,7 @@ pub async fn rfft() -> f32 {
         let mut rfft_array = rfft_array.borrow(cs).borrow_mut();
         let rfft_array = rfft_array.as_mut().unwrap();
         let spectrum = microfft::real::rfft_1024(rfft_array);
+        debug!("{:?}", spectrum);
         gain = spectrum[GAIN_INDEX].l1_norm();
     });
     gain

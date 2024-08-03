@@ -4,11 +4,11 @@
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
 use esp_hal::{
     analog::adc::{Adc, AdcConfig, Attenuation},
     clock::ClockControl,
+    delay::Delay,
     gpio::Io,
     interrupt::{self, Priority},
     ledc::{
@@ -56,6 +56,7 @@ async fn main(_spawner: Spawner) {
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
     esp_println::logger::init_logger(LevelFilter::Debug);
+    let delay = Delay::new(&clocks);
 
     debug!("初始化动态分配堆");
     init_heap();
@@ -86,8 +87,6 @@ async fn main(_spawner: Spawner) {
     let adc_pin =
         adc1_config.enable_pin_with_cal::<_, AdcCal>(adc_pin, Attenuation::Attenuation11dB);
     let adc1 = Adc::new(peripherals.ADC1, adc1_config);
-
-    // let pin_mv = block!(adc1.read_oneshot(adc1_pin)).unwrap();
 
     debug!("初始化PWM");
     let mut pwm_controller = Ledc::new(peripherals.LEDC, &clocks); // pwm控制器，提供pwm（ledc）的寄存器访问接口
@@ -124,11 +123,12 @@ async fn main(_spawner: Spawner) {
 
     loop {
         // Wait for 4 seconds
-        Timer::after(Duration::from_secs(4)).await;
+        delay.delay(4.secs());
+        // Timer::after(Duration::from_secs(4)).await;
 
         // // Join the rfft function
-        // let gain = listen::rfft().await;
+        let gain = listen::rfft().await;
 
-        // debug!("Gain: {}", gain);
+        debug!("Gain: {}", gain);
     }
 }
