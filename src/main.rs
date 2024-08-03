@@ -44,17 +44,19 @@ fn init_heap() {
     }
 }
 
-const TARGET_FREQ: u32 = 6000;
+const TARGET_FREQ: u32 = 5000;
 const SAMPLE_FREQ: u32 = TARGET_FREQ * 4;
 const SAMPLE_LEN: usize = 1024;
 const GAIN_INDEX: usize = TARGET_FREQ as usize * SAMPLE_LEN / SAMPLE_FREQ as usize;
 
 #[main]
 async fn main(_spawner: Spawner) {
-    // 初始化系统寄存器组和日志
+    // 初始化系统寄存器
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+
+    // "初始化日志和延时"
     esp_println::logger::init_logger(LevelFilter::Debug);
     let delay = Delay::new(&clocks);
 
@@ -67,11 +69,6 @@ async fn main(_spawner: Spawner) {
     let timers = [OneShotTimer::new(timer0)];
     let timers = mk_static!([OneShotTimer<ErasedTimer>; 1], timers);
     esp_hal_embassy::init(&clocks, timers);
-
-    debug!("初始化中断时钟，使用timer group 1");
-    let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks, None);
-    let timer0: ErasedTimer = timg1.timer0.into();
-    let mut timer = PeriodicTimer::new(timer0);
 
     debug!("初始化引脚");
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
@@ -108,13 +105,17 @@ async fn main(_spawner: Spawner) {
         })
         .unwrap();
 
+    debug!("初始化中断时钟，使用timer group 1");
+    let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks, None);
+    let timer0: ErasedTimer = timg1.timer0.into();
+    let mut timer = PeriodicTimer::new(timer0);
     let sample_freq = Rate::<u32, 1, 1>::Hz(SAMPLE_FREQ);
     let sample_cycle = sample_freq.into_duration::<1, 1_000_000>().into();
-    debug!("发射时钟中断，周期：{}", sample_cycle);
-    timer.start(sample_cycle).unwrap();
-    timer.set_interrupt_handler(listen::adc_to_rfft);
-    timer.enable_interrupt(true);
     critical_section::with(|cs| {
+        debug!("发射时钟中断，周期：{}", sample_cycle);
+        timer.start(sample_cycle).unwrap();
+        timer.set_interrupt_handler(listen::adc_to_rfft);
+        timer.enable_interrupt(true);
         listen::TIMER1.borrow(cs).replace(Some(timer));
         listen::ADC1.borrow(cs).replace(Some(adc1));
         listen::ADC_PIN.borrow(cs).replace(Some(adc_pin));
@@ -124,11 +125,7 @@ async fn main(_spawner: Spawner) {
     loop {
         // Wait for 4 seconds
         delay.delay(4.secs());
-        // Timer::after(Duration::from_secs(4)).await;
-
-        // // Join the rfft function
         let gain = listen::rfft().await;
-
         debug!("Gain: {}", gain);
     }
 }
