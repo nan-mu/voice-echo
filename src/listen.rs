@@ -89,6 +89,8 @@ pub fn adc_to_rfft() {
 
 pub async fn rfft() -> f32 {
     let mut rfft_array = [0.0; crate::SAMPLE_LEN];
+
+    // 关键区域会禁用中断，需要其中不能有高cpu负载的任务
     critical_section::with(|cs| {
         rfft_array = match AB_FLAG.borrow(cs).get() {
             true => &RFFT_ARRAY_A,

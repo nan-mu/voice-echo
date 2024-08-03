@@ -13,6 +13,7 @@ macro_rules! mk_static {
 #[macro_export]
 macro_rules! mk_static_ref {
     ($val:expr) => {{
+        use alloc::boxed::Box;
         let val = Box::new($val);
         let val: &'static _ = Box::leak(val);
         val

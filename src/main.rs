@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-use alloc::boxed::Box;
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
@@ -69,13 +68,20 @@ async fn main(spawner: Spawner) {
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
-    // let clocks = mk_static_ref!(clocks);
-    // let clocks = Box::new(clocks);
-    // let clocks: &'static Clocks = Box::leak(clocks);
 
-    // "初始化日志和延时"
+    // "初始化日志并打印功能参数："
     esp_println::logger::init_logger(LevelFilter::Debug);
-
+    debug!("日志初始化完毕");
+    debug!("功能相关参数：");
+    debug!("目标频率：{}", TARGET_FREQ);
+    debug!("采样系数：{}", SAMPLE_COEFF);
+    debug!("采样频率：{}", SAMPLE_FREQ);
+    debug!("采样样本长度：{}", SAMPLE_LEN);
+    debug!("增益所在区间索引：{}", GAIN_INDEX);
+    debug!("通信周期内增益计算次数：{}", GAIN_COUNT);
+    debug!("通信频率：{}", COMM_FREQ);
+    debug!("增益计算频率：{}", GAIN_FREQ);
+    debug!("-------------------------------");
     debug!("初始化动态分配堆");
     init_heap();
 
@@ -143,9 +149,7 @@ async fn main(spawner: Spawner) {
         .unwrap();
     pwm_channel.set_duty(0).unwrap();
 
-    let pwm = Box::new(pwm_channel);
-    let pwm: &'static channel::Channel<'static, LowSpeed, esp_hal::gpio::GpioPin<0>> =
-        Box::leak(pwm);
+    let pwm = mk_static_ref!(pwm_channel);
     spawner.spawn(speak::speak(pwm)).ok();
 
     loop {
