@@ -8,3 +8,13 @@ macro_rules! mk_static {
         x
     }};
 }
+
+///
+#[macro_export]
+macro_rules! mk_static_ref {
+    ($val:expr) => {{
+        let val = Box::new($val);
+        let val: &'static _ = Box::leak(val);
+        val
+    }};
+}

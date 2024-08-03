@@ -1,14 +1,15 @@
 #![no_std]
 #![no_main]
 
+use alloc::boxed::Box;
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
 use esp_hal::{
     analog::adc::{Adc, AdcConfig, Attenuation},
     clock::ClockControl,
-    delay::Delay,
     gpio::Io,
     interrupt::{self, Priority},
     ledc::{
@@ -27,6 +28,7 @@ use log::{debug, LevelFilter};
 type CsMutex<T> = Mutex<RefCell<Option<T>>>;
 
 mod listen;
+mod speak;
 #[macro_use]
 mod macros;
 
@@ -44,21 +46,35 @@ fn init_heap() {
     }
 }
 
+/// 目标声音频率
 const TARGET_FREQ: u32 = 5000;
-const SAMPLE_FREQ: u32 = TARGET_FREQ * 4;
+/// 采样系数
+const SAMPLE_COEFF: u32 = 4;
+/// 采样频率
+const SAMPLE_FREQ: u32 = TARGET_FREQ * SAMPLE_COEFF;
+/// 采样样本长度
 const SAMPLE_LEN: usize = 1024;
+/// 增益所在区间索引
 const GAIN_INDEX: usize = TARGET_FREQ as usize * SAMPLE_LEN / SAMPLE_FREQ as usize;
+/// 通信周期内增益计算次数
+const GAIN_COUNT: u32 = 12;
+/// 通信频率
+const COMM_FREQ: u32 = SAMPLE_FREQ / GAIN_COUNT / (SAMPLE_LEN as u32);
+/// 增益计算频率
+const GAIN_FREQ: u32 = SAMPLE_FREQ * SAMPLE_LEN as u32;
 
 #[main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     // 初始化系统寄存器
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+    // let clocks = mk_static_ref!(clocks);
+    // let clocks = Box::new(clocks);
+    // let clocks: &'static Clocks = Box::leak(clocks);
 
     // "初始化日志和延时"
     esp_println::logger::init_logger(LevelFilter::Debug);
-    let delay = Delay::new(&clocks);
 
     debug!("初始化动态分配堆");
     init_heap();
@@ -85,26 +101,6 @@ async fn main(_spawner: Spawner) {
         adc1_config.enable_pin_with_cal::<_, AdcCal>(adc_pin, Attenuation::Attenuation11dB);
     let adc1 = Adc::new(peripherals.ADC1, adc1_config);
 
-    debug!("初始化PWM");
-    let mut pwm_controller = Ledc::new(peripherals.LEDC, &clocks); // pwm控制器，提供pwm（ledc）的寄存器访问接口
-    pwm_controller.set_global_slow_clock(LSGlobalClkSource::APBClk); // 链接全局慢速时钟
-    let mut pwm_timer = pwm_controller.get_timer::<LowSpeed>(timer::Number::Timer1);
-    pwm_timer
-        .configure(config::Config {
-            duty: config::Duty::Duty5Bit,
-            clock_source: LSClockSource::APBClk,
-            frequency: TARGET_FREQ.Hz(),
-        })
-        .unwrap();
-    let mut pwm_channel = pwm_controller.get_channel(channel::Number::Channel0, pwm_pin);
-    pwm_channel
-        .configure(channel::config::Config {
-            timer: &pwm_timer,
-            duty_pct: 10,
-            pin_config: channel::config::PinConfig::PushPull,
-        })
-        .unwrap();
-
     debug!("初始化中断时钟，使用timer group 1");
     let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks, None);
     let timer0: ErasedTimer = timg1.timer0.into();
@@ -122,9 +118,39 @@ async fn main(_spawner: Spawner) {
     });
     interrupt::enable(Interrupt::TG1_T0_LEVEL, Priority::Priority1).unwrap();
 
+    debug!("初始化PWM");
+    let clocks = mk_static_ref!(clocks);
+    let mut pwm_controller = Ledc::new(peripherals.LEDC, clocks); // pwm控制器，提供pwm（ledc）的寄存器访问接口
+    pwm_controller.set_global_slow_clock(LSGlobalClkSource::APBClk); // 链接全局慢速时钟
+    let pwm_controller = mk_static_ref!(pwm_controller);
+    let mut pwm_timer = pwm_controller.get_timer::<LowSpeed>(timer::Number::Timer1);
+    pwm_timer
+        .configure(config::Config {
+            duty: config::Duty::Duty5Bit,
+            clock_source: LSClockSource::APBClk,
+            frequency: TARGET_FREQ.Hz(),
+        })
+        .unwrap();
+    let pwm_timer = mk_static_ref!(pwm_timer);
+
+    let mut pwm_channel = pwm_controller.get_channel(channel::Number::Channel0, pwm_pin);
+    pwm_channel
+        .configure(channel::config::Config {
+            timer: pwm_timer,
+            duty_pct: 10,
+            pin_config: channel::config::PinConfig::PushPull,
+        })
+        .unwrap();
+    pwm_channel.set_duty(0).unwrap();
+
+    let pwm = Box::new(pwm_channel);
+    let pwm: &'static channel::Channel<'static, LowSpeed, esp_hal::gpio::GpioPin<0>> =
+        Box::leak(pwm);
+    spawner.spawn(speak::speak(pwm)).ok();
+
     loop {
         // Wait for 4 seconds
-        delay.delay(4.secs());
+        Timer::after(Duration::from_hz(GAIN_FREQ as u64)).await;
         let gain = listen::rfft().await;
         debug!("Gain: {}", gain);
     }
