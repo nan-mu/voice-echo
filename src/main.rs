@@ -4,7 +4,7 @@
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
-// use embassy_sync::zerocopy_channel::Channel;
+use embassy_sync::{blocking_mutex::raw::RawMutex, zerocopy_channel::Channel};
 use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
 use esp_hal::{
@@ -104,9 +104,10 @@ async fn main(spawner: Spawner) {
     let timers = mk_static!([OneShotTimer<ErasedTimer>; 1], timers);
     esp_hal_embassy::init(&clocks, timers);
 
-    debug!("初始化异步通信通道");
-    // let gain_buffer = mk_static!([[f32; 16]; 1], [0.0; 16]);
-    // let gain_channel = Channel::new(gain_buffer);
+    // debug!("初始化异步通信通道");
+    // let gain_buffer = mk_static_ref!([0.0; 16]);
+    // let gain_channel: Channel<RawMutex, f64> = Channel::new(gain_buffer.as_mut());
+    // let (tx, rx) = gain_channel.split();
 
     debug!("初始化引脚");
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
