@@ -5,14 +5,12 @@ use esp_hal::{
     prelude::_esp_hal_ledc_channel_ChannelIFace,
 };
 
-use crate::COMM_FREQ;
-
 #[embassy_executor::task]
-pub async fn speak(pwm: &'static Channel<'static, LowSpeed, GpioPin<0>>) {
+pub async fn speak(comm_cycle: u64, pwm: &'static Channel<'static, LowSpeed, GpioPin<0>>) {
     loop {
         pwm.set_duty(50).unwrap();
-        Timer::after(Duration::from_hz((COMM_FREQ * 2) as u64)).await;
+        Timer::after(Duration::from_micros(comm_cycle / 2)).await;
         pwm.set_duty(0).unwrap();
-        Timer::after(Duration::from_hz((COMM_FREQ * 2) as u64)).await;
+        Timer::after(Duration::from_micros(comm_cycle / 2)).await;
     }
 }

@@ -4,6 +4,7 @@
 use core::{cell::RefCell, mem::MaybeUninit};
 use critical_section::Mutex;
 use embassy_executor::Spawner;
+// use embassy_sync::zerocopy_channel::Channel;
 use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
 use esp_hal::{
@@ -21,7 +22,8 @@ use esp_hal::{
     system::SystemControl,
     timer::{timg::TimerGroup, ErasedTimer, OneShotTimer, PeriodicTimer},
 };
-use fugit::Rate;
+use fugit::{MicrosDurationU32, MillisDurationU32, Rate};
+use listen::INTERRUPT_TIME;
 use log::{debug, LevelFilter};
 
 type CsMutex<T> = Mutex<RefCell<Option<T>>>;
@@ -46,24 +48,30 @@ fn init_heap() {
 }
 
 /// 目标声音频率
-const TARGET_FREQ: u32 = 5000;
-/// 采样系数
-const SAMPLE_COEFF: u32 = 4;
-/// 采样频率
-const SAMPLE_FREQ: u32 = TARGET_FREQ * SAMPLE_COEFF;
+const TARGET_FREQ: Rate<u32, 1, 1> = Rate::<u32, 1, 1>::Hz(5000);
+/// 采样系数，表示采样频率是目标频率的多少倍
+const SAMPLE_COEFF: u32 = 2;
 /// 采样样本长度
-const SAMPLE_LEN: usize = 1024;
-/// 增益所在区间索引
-const GAIN_INDEX: usize = TARGET_FREQ as usize * SAMPLE_LEN / SAMPLE_FREQ as usize;
+const SAMPLE_LEN: usize = 128;
 /// 通信周期内增益计算次数
-const GAIN_COUNT: u32 = 12;
-/// 通信频率
-const COMM_FREQ: u32 = SAMPLE_FREQ / GAIN_COUNT / (SAMPLE_LEN as u32);
-/// 增益计算频率
-const GAIN_FREQ: u32 = SAMPLE_FREQ * SAMPLE_LEN as u32;
+const GAIN_COUNT: u32 = 24;
 
 #[main]
 async fn main(spawner: Spawner) {
+    // 采样频率
+    let sample_freq = TARGET_FREQ * SAMPLE_COEFF;
+    // 增益所在区间索引
+    let gain_index = (TARGET_FREQ.to_Hz() * SAMPLE_LEN as u32 / sample_freq.to_Hz()) as usize;
+    // 增益计算周期
+    let gain_cycle = sample_freq.into_duration() as MicrosDurationU32 * SAMPLE_LEN as u32;
+    // 通信周期
+    let comm_cycle = gain_cycle * GAIN_COUNT;
+    // 增益区间
+    let target_range = (
+        (sample_freq.to_Hz() as f32 / SAMPLE_LEN as f32) * gain_index as f32,
+        (sample_freq.to_Hz() as f32 / SAMPLE_LEN as f32) * (gain_index + 1) as f32,
+    );
+
     // 初始化系统寄存器
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
@@ -75,12 +83,16 @@ async fn main(spawner: Spawner) {
     debug!("功能相关参数：");
     debug!("目标频率：{}", TARGET_FREQ);
     debug!("采样系数：{}", SAMPLE_COEFF);
-    debug!("采样频率：{}", SAMPLE_FREQ);
+    debug!("采样频率：{}", sample_freq);
     debug!("采样样本长度：{}", SAMPLE_LEN);
-    debug!("增益所在区间索引：{}", GAIN_INDEX);
+    debug!("增益区间：({:.2}, {:.2})", target_range.0, target_range.1);
+    debug!("增益所在区间索引：{}", gain_index);
     debug!("通信周期内增益计算次数：{}", GAIN_COUNT);
-    debug!("通信频率：{}", COMM_FREQ);
-    debug!("增益计算频率：{}", GAIN_FREQ);
+    debug!("通信周期：{}", comm_cycle.convert() as MillisDurationU32);
+    debug!(
+        "增益计算周期：{}",
+        gain_cycle.convert() as MillisDurationU32
+    );
     debug!("-------------------------------");
     debug!("初始化动态分配堆");
     init_heap();
@@ -91,6 +103,10 @@ async fn main(spawner: Spawner) {
     let timers = [OneShotTimer::new(timer0)];
     let timers = mk_static!([OneShotTimer<ErasedTimer>; 1], timers);
     esp_hal_embassy::init(&clocks, timers);
+
+    debug!("初始化异步通信通道");
+    // let gain_buffer = mk_static!([[f32; 16]; 1], [0.0; 16]);
+    // let gain_channel = Channel::new(gain_buffer);
 
     debug!("初始化引脚");
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
@@ -111,8 +127,8 @@ async fn main(spawner: Spawner) {
     let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks, None);
     let timer0: ErasedTimer = timg1.timer0.into();
     let mut timer = PeriodicTimer::new(timer0);
-    let sample_freq = Rate::<u32, 1, 1>::Hz(SAMPLE_FREQ);
-    let sample_cycle = sample_freq.into_duration::<1, 1_000_000>().into();
+    let sample_cycle: fugit::Duration<u64, 1, 1000000> =
+        sample_freq.into_duration::<1, 1_000_000>().into();
     critical_section::with(|cs| {
         debug!("发射时钟中断，周期：{}", sample_cycle);
         timer.start(sample_cycle).unwrap();
@@ -134,7 +150,7 @@ async fn main(spawner: Spawner) {
         .configure(config::Config {
             duty: config::Duty::Duty5Bit,
             clock_source: LSClockSource::APBClk,
-            frequency: TARGET_FREQ.Hz(),
+            frequency: TARGET_FREQ,
         })
         .unwrap();
     let pwm_timer = mk_static_ref!(pwm_timer);
@@ -150,12 +166,16 @@ async fn main(spawner: Spawner) {
     pwm_channel.set_duty(0).unwrap();
 
     let pwm = mk_static_ref!(pwm_channel);
-    spawner.spawn(speak::speak(pwm)).ok();
+    spawner
+        .spawn(speak::speak(comm_cycle.to_micros() as u64, pwm))
+        .ok();
 
     loop {
-        // Wait for 4 seconds
-        Timer::after(Duration::from_hz(GAIN_FREQ as u64)).await;
-        let gain = listen::rfft().await;
+        Timer::after(Duration::from_micros(
+            gain_cycle.to_micros() as u64 - INTERRUPT_TIME * SAMPLE_LEN as u64,
+        ))
+        .await;
+        let gain = listen::rfft(gain_index).await;
         debug!("Gain: {}", gain);
     }
 }
