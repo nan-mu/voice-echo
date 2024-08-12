@@ -8,3 +8,5 @@ target/
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+基于ESP32C3单片机的回声测距验证实验.assets/
