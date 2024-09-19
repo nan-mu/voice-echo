@@ -1,0 +1,556 @@
+%!TeX program = xelatex
+\documentclass{CUGReport}
+
+% 根据个人情况修改
+\headl{左侧页眉}
+\headc{中间页眉}
+\headr{右侧页眉}
+\lessonTitle{XXX课程实习报告}
+\reportTitle{XXX系统设计}
+\stuname{张三}
+\stuid{20300000}
+\inst{机械与电子信息学院}
+\major{通信工程}
+\time{2024年7月1日-7月20日}
+\date{\today}
+
+\begin{document}
+
+% =============================================
+% Part 1: 封面
+% =============================================
+\cover
+\thispagestyle{empty} % 首页不显示页码
+\clearpage
+
+% =============================================
+% Part 2： 摘要
+% =============================================
+\begin{abstract}
+
+实验报告的结构包括：标题页、摘要、实验内容、方法论、实验结果、讨论、参考文献及附录，其中标题页、摘要、参考文献和附录都要单独占用一页。写摘要的目的是概括报告的内容，不加评论和补充解释，篇幅以150字为宜。摘要应该简洁、具体地反映报告的实质性信息，包括：实验目的及理由；参加人和计划 ；实验方法论;最重要的发现和观点;该实验的意义和重要性。需要注意，摘要位于报告的开头，但最好在整个报告写完之后再来写摘要。实验内容写明依据何种原理，提供该研究的理论基础。研究目标是研究者希望通过实验达到的目的。实验内容这一部分需要：在理论基础上，简明地介绍你的题目，并且确定关键词；解释理论框架。值得关注的是：要保持思维的清晰性和逻辑性；没必要详细地介绍该研究的过程和细节；不建议以一种写文章的思路去写摘要。实验方法需要简单地介绍一下你所使用的研究方法。这一部分的要求可以归纳为以下几点：写作时，记得使用第三人称；一定要使用过去时态；为了让别人能够验证你的实验，需要提供该实验的细节；没必要解释为什么你选择了某种方法，告诉你做了什么即可。实验结果一般提供实验现象的描述和实验数据的处理。在撰写实验结果的过程中，同样需要使用过去时态，而且保持清晰性和简洁性。你只需要列出结果，没必要解释它们（讨论部分才解释结果）。此外，不要提供任何原始数据，但是如果有表格或图表做补充说明，那就更好了。在相关的理论知识的基础上，对所得到的实验结果进行解释和分析。讨论需要提到的问题包括：如果你的实验结果和预期的结果一致，那么它可以验证什么理论？实验结果有什么意义？说明了什么问题？写作时，需要注意以下几点：总结一下你们的发现，而且把结果与假设联系起来；把结果与介绍中的背景资料对比一下，然后提出你的结论 ；提一些建设性的建议改进你的研究 （如果有机会的话）；写一下本研究的发现对人们在现实生活中的行为方式有什么意义；概括一下你的发现和讨论的要点 （用2-3句话）。
+
+
+\vspace{4em}
+\textbf{关键词：} \textbf{实验报告；格式；模板；\LaTeX；}
+\end{abstract}
+ \thispagestyle{empty} % 摘要页不显示页码
+ \clearpage
+
+
+% =============================================
+% Part 3： 目录页
+% =============================================
+% 重置页码，并使用罗马数字
+\pagenumbering{Roman}
+\setcounter{page}{1}
+\tableofcontents
+\clearpage
+
+% =============================================
+% Part 4： 正文内容
+% =============================================
+% 重置页码，并使用阿拉伯数字
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+
+%%可选择这里也放一个标题
+%\begin{center}
+%    \title{ \Huge \textbf{{标题}}}
+%\end{center}
+
+\section{模板说明}
+
+本模板主要适用于一些课程的实验报告以及期末论文，默认页边距为2.5cm，中文宋体，英文Times New Roman，字号为12pt（小四）。
+
+默认带有封面页以及目录页，目录部分页码和正文单独计数。
+
+\subsection{\LaTeX{}与模板介绍}
+
+\LaTeX{}（发音为 “Lah-tech” 或 “Lay-tech” ）是由 Leslie Lamport 开发的当今世界上最流行和使用最为广泛的 \TeX{} 宏集。它构筑在 PlainTeX 的基础之上，并加进了很多的功能以使得使用者可以更为方便的利用 \TeX{} 的强大功能。
+
+使用 \LaTeX{} 基本上不需要使用者自己设计命令和宏等，因为 \LaTeX{} 已经替你做好了。因此，即使使用者并不是很了解 \TeX{}，也可以在短短的时间内生成高质量的文档。对于生成复杂的数学公式，\LaTeX{} 表现的更为出色。
+
+\LaTeX{} 由 \LaTeX{3} 项目维护，很多使用者对 \LaTeX{} 加入了很多补充扩展，例如为 \LaTeX{} 开发宏包和样式，其中的一些已经包含在很多 \LaTeX{} 软件中，可以在CTAN上获得更多的扩展宏包。
+
+编译方式：\verb|xelatex -> bibtex -> xelatex*2|
+
+默认模板文件由以下四部分组成：
+
+\begin{itemize}
+    \item \texttt{main.tex} 主文件，报告内容在此输入
+    \item \texttt{reference.bib} 参考文献，使用bibtex格式
+    \item \texttt{CUGReport.cls} 文档格式控制，包括一些基础的设置，如页眉、标题、姓名等的格式设置，一般不需要修改
+    \item \texttt{figures} 放置图片的文件夹
+\end{itemize}
+
+
+
+\subsection{模板使用方法}
+
+使用模板时，我们只需要在\texttt{main.tex} 中\verb|\begin{document}|……
+\verb|\end{document}|之间输入你的报告内容就好，这两个命令表示了文档的开始和结束。命令\verb|\section{节标题}|表示一节的开始，\verb|\subsection{小节标题}|表示小节的开始。在文档中间，就是文档的主要内容，包括节、小节、图、表、公式、代码和参考文献等各种元素，这些就是我们的主要工作，只要这些元素的描述语言正确，就可以得到格式统一、美观的文档。在使用前，可以对照\texttt{main.tex}内容和生成的\texttt{main.pdf}文件内容和格式进行学习，依葫芦画瓢，多动手练习，很快就能掌握基本的用法，并得到排版美观、格式标准的实验报告。
+
+如果想修改文档的生成格式，可以在学习\LaTeX{}语言的基础上修改、设置模板中对应的变量参数，当然也可以去\texttt{CUGReport.cls}中修改对应的设置，制作属于你自己的模板。
+
+推荐学习平台\url{www.texpage.com}，或者\url{www.overleaf.com}。这两个平台都是在线编辑、编译平台，注册之后通过浏览器上传此模板压缩包，然后就直接可以使用，不用自己安装\LaTeX{}环境，并且还提供了公式编辑器、特殊符号输入、协作审阅等功能，在使用时可以慢慢了解。在\url{https://www.texpage.com/docs/zh/} 的文档中心提供了\LaTeX{}的基本知识以及基本功能的介绍，可以作为使用参考。
+
+
+
+\section{一些插入功能}
+
+\subsection{数学符号}
+
+中文论文的数学符号遵循 GB/T 3102.11—1993《物理科学和技术中使用的数学符号》标准\footnote{原 GB 3102.11—1993，自2017年3月23日起，该标准转为推荐性标准。}，并参照 ISO 80000-2:2019。英文论文的数学符号采用 \TeX{} 默认的样式。
+
+推荐使用\href{http://mirrors.ctan.org/macros/latex/contrib/siunitx/siunitx.pdf}{siunitx} 宏包处理量和单位，以便方便地处理希腊字母以及数字与单位之间的空白。例如：
+\SI{6.4e6}{m}，
+\SI{9}{\micro\meter}，
+\SI{30}{kg.m.s^{-1}}，
+\SI{20}{\degreeCelsius}。
+
+ \autoref{tab:number} 展示了一些数字和单位的正确写法以及常见的错误写法。
+
+\vspace{0.1em}
+\begin{table}[H]
+    \centering
+    \caption{数字与单位示范}
+    \label{tab:number}
+    \renewcommand\arraystretch{0.85} % 定义表格行距
+    \setlength{\tabcolsep}{15pt} % 定义列间宽度
+    \begin{tabular}{@{}cc@{}}
+        \toprule[1.5pt]
+        \textbf{正确示例} & \textbf{错误示例} \\ 
+        \midrule[0.8pt]
+        \num{12345,67890} & 12345.67890 \\
+        \num{.3e45} & 0.3 $\times$ 10\textsuperscript{45} \\
+        \si{\kilo\gram\metre\per\square\second} & kg m s\textsuperscript{-2} \\
+        \si{\square\volt\cubic\lumen\per\farad} & $V^{2}lm^{3}F^{-1}$ \\
+        \SI[mode=text]{1.23}{J.mol^{-1}.K^{-1}} & 1.23J mol\textsuperscript{-1}K\textsuperscript{-1} \\
+        \SI[per-mode=symbol]{1.99}[\$]{\per\kilogram} & \$ 1.99/kg \\
+        \SI[per-mode=fraction]{1,345}{\coulomb\per\mole} & 1.345$\frac{C}{mol}$ \\ 
+        \bottomrule[1.5pt]
+    \end{tabular}
+\end{table}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+\subsection{插入公式}
+插入公式分为两种，一种是行内公式，一种是行间编号（无编号）公式。行内公式插入方法比较简单，在需要输入公式的地方，用如下代码就可以插入简单的行内公式，其中“\$ ”是行内公式的提示符，行内公式必须以此符号开始和结束。
+\begin{verbatim}
+    $v-\varepsilon+\phi=2$
+\end{verbatim}
+行内公式$v-\varepsilon+\phi=2$。
+
+插入行间公式如\autoref{eq:Eq1}：
+
+\begin{equation}
+     x_t = a_0 + a_1x_{t-1} + a_2x_{t-2} + \epsilon_t
+    \label{eq:Eq1}
+\end{equation}
+
+可以看到，此时公式右侧会自动编号。插入行间编号公式的代码如下。
+\begin{verbatim}
+    \begin{equation}
+         x_t = a_0 + a_1x_{t-1} + a_2x_{t-2} + \epsilon_t
+        \label{eq:Eq1}
+    \end{equation}
+\end{verbatim}
+
+与此相似，插入行间无编号公式的代码如下。
+\begin{verbatim}
+    \begin{equation*}
+         x_t = a_0 + a_1x_{t-1} + a_2x_{t-2} + \epsilon_t
+        \label{eq:Eq2}
+    \end{equation*}
+\end{verbatim}
+得到结果如下。
+\begin{equation*}
+     x_t = a_0 + a_1x_{t-1} + a_2x_{t-2} + \epsilon_t
+     \label{eq:Eq2}
+\end{equation*}
+
+对于多行公式，如果不需要按等号对齐, 可以使用“\{gather\} ” 环境，如下：
+\abovedisplayshortskip=3pt
+\belowdisplayshortskip=4pt
+\abovedisplayskip=3pt
+\belowdisplayskip=4pt
+\begin{gather*}%不会产生编号
+max \ \ Cov(t_1,u_1) = Cov(Xw_1,Yv_1)\\
+s.t.
+\begin{cases}
+  w_1^Tw_1 = \left \| w_1 \right \|^2 = 1  \\
+  v_1^Tv_1 = \left \| v_1 \right \|^2 = 1  
+\end{cases}
+\end{gather*}
+
+而如果需要多行公式尽可能在等号处对齐，可以使用 “\{align\}” 环境。
+\abovedisplayshortskip=4pt
+\belowdisplayshortskip=4pt
+\abovedisplayskip=4pt
+\belowdisplayskip=4pt
+\begin{align}
+Y &= t_1r_1^T + t_2r_2^T + \cdots + t_mr_m^T + Y_m \\
+  &= (Xw_1^*)r_1^T + (Xw_2^*)r_2^T + \cdots + (Xw_m^*)r_m^T + Y_m \\
+  &= X ({\textstyle \sum_{i=1}^{m}} w_ir_i^T) + Y_m
+\end{align}
+
+如果需要多个公式组在一起共用一个编号, 编号位于公式的居中位置，推荐使用 “\{aligned\}” 环境。使用效果如公式 \autoref{eq:example2} 所示。
+\abovedisplayshortskip=4pt
+\belowdisplayshortskip=4pt
+\abovedisplayskip=4pt
+\belowdisplayskip=4pt
+\begin{equation}
+\label{eq:example2}
+\left\{
+    \begin{aligned}
+     & X = t_1p_1^T + t_2p_2^T + \cdots + t_mp_m^T \\
+     & Y = t_1r_1^T + t_2r_2^T + \cdots + t_mr_m^T + Y_m
+    \end{aligned}
+\right.
+\end{equation}
+
+\subsection{插入图片}
+\subsubsection{单个图片}
+图片通常在 figure 环境中使用 includegraphics 插入，如图 \ref{fig:CUG} 的源代码。建议使用矢量图片（PDF）。照片建议使用 JPG 格式。其他的栅格图建议使用无损的 PNG 格式。图片可以通过 width 参数来设置宽度，设置宽度后长度会等比例放缩。一般 width 参数会搭配 \verb|\linewidth| 使用，以实现按照当前页面宽度进行等比例放缩。另外可以通过\verb|\vspace|，来调整图片与上下文之间的间距。
+CUG校徽如\autoref{fig:CUG}所示，注意这里使用了\verb|\autoref{}|命令，也就是会自动生成“图”“式”等前缀，无需手动输入。
+插入\autoref{fig:CUG}的代码：
+
+\begin{verbatim}
+    \begin{figure}[!hbp]    %[]中为图片位置放置方式及顺序
+        \centering                %居中 
+        %引用图片
+        \includegraphics[width =.4\textwidth]
+         {figures/xinxiaohui-1952(2).png}   
+        \caption{中国地质大学（武汉）}    %图片名称说明文字
+        \label{fig:CUG}        %图片标签
+    \end{figure}                %结束图片环境
+\end{verbatim}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width =.4\textwidth]{xinxiaohui-1952.png}
+    \caption{中国地质大学（武汉）}
+    \label{fig:CUG}
+\end{figure}
+
+\subsubsection{多个图片}
+该模板使用 \verb|subcaption| 宏包来处理分图，呈现了如 \autoref{fig:CUG-01} 、 \autoref{fig:CUG-02} 和 \autoref{fig:CUG-03}所示的效果。
+
+在 \autoref{fig:CUG-01} 中，通过 \verb|\subcaptionbox| 命令展示了两个独立的子图（ \autoref{fig:subfig-a-1} 和 \autoref{fig:subfig-b-1}），分别使用不同的标题，并被包含在总图标题“多个独立标题分图示例 01”中。
+
+\begin{figure}[H]
+    \centering
+    \subcaptionbox{sub caption A \label{fig:subfig-a-1}}{\includegraphics[width=0.35\linewidth]{figures/xinxiaohui-1952.png}}
+    \quad        %两图之间的间距，当前字体下一个“M”的宽度
+    \subcaptionbox{sub caption B \label{fig:subfig-b-1}}{\includegraphics[width=0.35\linewidth]{figures/xinxiaohui-1952(2).png}}
+    \caption{多个独立标题分图示例 01}
+    \label{fig:CUG-01}
+\end{figure}
+\vspace{-0.7em}  % 减少图片与正文间的间距
+
+\begin{figure}[H]
+    \centering
+    \subcaptionbox{分图 A1\label{fig:subfig-a-2-01}}{\includegraphics[width=0.17\linewidth]{figures/xinxiaohui-1952.png}}
+    \subcaptionbox{分图 B1\label{fig:subfig-b-2-01}}{\includegraphics[width=0.17\linewidth]{figures/xinxiaohui-1952(2).png}}
+    \subcaptionbox{分图 A2\label{fig:subfig-a-2-02}}{\includegraphics[width=0.17\linewidth]{figures/xinxiaohui-1952.png}}
+    \subcaptionbox{分图 B2\label{fig:subfig-b-2-02}}{\includegraphics[width=0.17\linewidth]{figures/xinxiaohui-1952(2).png}}
+    \caption{多个独立标题分图示例 02}
+    \label{fig:CUG-02}
+\end{figure}
+\vspace{-0.7em}  % 减少图片与正文间的间距
+
+多个分图可以以多行的形式展示，使用的效果如图 \autoref{fig:CUG-03} 所示。
+
+\begin{figure}[H]
+    \centering
+    \subcaptionbox{分图 A1\label{fig:subfig-a1-3}}{\includegraphics[width=0.25\linewidth]{figures/xinxiaohui-1952.png}}
+    \subcaptionbox{分图 A2\label{fig:subfig-a2-3}}{\includegraphics[width=0.25\linewidth]{figures/xinxiaohui-1952(2).png}}
+    \\
+    \subcaptionbox{分图 B1\label{fig:subfig-b1-3}}{\includegraphics[width=0.25\linewidth]{figures/xinxiaohui-1952(2).png}}
+    \subcaptionbox{分图 B2\label{fig:subfig-b2-3}}{\includegraphics[width=0.25\linewidth]{figures/xinxiaohui-1952.png}}
+    \caption{多个独立标题分图示例 03}
+    \label{fig:CUG-03}
+\end{figure}
+\vspace{-0.7em}  % 减少图片与正文间的间距
+
+minipage 也可以实现排版并排插图, minipage 可以划分出虚拟的区块，每个区块中可以进行独立排版，使用的效果如图 \autoref{fig:minipage-1} 和  \autoref{fig:minipage-2} 所示。
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[Ht]{0.48\linewidth} % 第一个minipage
+        \centering
+        \includegraphics[width=0.48\linewidth]{figures/xinxiaohui-1952.png}
+        \caption{图 A}
+        \label{fig:minipage-1}
+    \end{minipage}
+    \begin{minipage}[Ht]{0.48\linewidth} % 第二个minipage
+        \centering
+        \includegraphics[width=0.48\linewidth]{figures/xinxiaohui-1952(2).png}
+        \caption{图 B}
+        \label{fig:minipage-2}
+    \end{minipage}
+\end{figure}
+\vspace{-0.7em}    %减少图片与正文间的间距
+
+以上就是插入图片的几种基本形式，可以根据自己的需要选择合适的图片排版形式进行图片的展示。
+
+\subsection{插入文本框}
+本模板定义了一个圆角灰底的文本框，使用简化命令\verb|\tbox{}|即可，如果你不喜欢，可以前往 \texttt{CUGReport.sty}对其进行修改。
+
+\tbox{
+    这是一个圆角灰底的文本框
+}
+
+\subsection{插入表格}
+
+\subsubsection{普通表格}
+在 \LaTeX{} 中，表格的编辑相对较为复杂，推荐使用 Table Generator\footnote{Table Generator 网址：\url{https://www.tablesgenerator.com/}} 来生成表格。为使表格结构更加简洁通用，通常需要使用三线表。三线表是传统网格线表经过简化改造而来的，取消了斜线、竖线和横向分割线， \autoref{tab:three-line} 是一个三线表的示例。
+
+\begin{table}[H] % 表格位置固定
+    \centering % 表格整体居中
+    \caption{三线表示例} % 表格表题
+    \label{tab:three-line} % 表格标签
+    \renewcommand\arraystretch{0.85} % 定义表格行距
+    \setlength{\tabcolsep}{12pt} % 定义列间宽度
+    \begin{tabular}{ccc} % 表格列样式定义：3列，每列居中
+        \toprule[1.5pt] % 顶线
+        \textbf{列名1} & \textbf{列名2} & \textbf{列名3} \\ % 表头
+        \midrule[0.8pt] % 栏目线
+            Wuhan & Wuhan & Wuhan \\ % 表体
+            Yantai & Yantai & Yantai \\ % 表体
+            Yantai & Yantai & Yantai \\ % 表体
+        \bottomrule[1.5pt] % 底线
+    \end{tabular}
+\end{table}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+比较简单的表格文件所示表格如\autoref{tab:doctab1}所示。
+
+\begin{table}[!htbp]
+    \centering
+    \caption{本模板文件组成}    %表名
+    \begin{tabular}{c|c}        %“{c|c}”中'|'表示两列之间有分割线，c表示居中
+        \hline                           %最上横线
+        文件名                  & 说明         \\%列名
+        \hline                            %中间横线
+        \texttt{main.tex}       & 主文件       \\    %第一行
+        \texttt{reference.bib}  & 参考文献     \\%第二行
+        \texttt{SYSUReport.sty} & 文档格式控制 \\    %第三行
+        \texttt{figures}        & 图片文件夹   \\    %第四行
+        \hline                        %最下横线
+    \end{tabular}
+    \label{tab:doctab1}
+\end{table}
+
+\subsubsection{长表格}
+
+如某个表需要转页接排，可以使用 longtable 宏包，需要在随后的各页上重复表的编号。
+编号后跟表题（可省略）和“（续）”，置于表上方。续表均应重复表头。如表 \autoref{tab:longTable} 所示。不过当一个张表内容过多时，建议将该表置于附录中。
+
+\renewcommand\arraystretch{0.85} % 定义表格行距，注意命令的位置与普通表格不同
+\begin{longtable}{cccccccc}
+    \caption{跨页长表格} \\ % 换页前标题
+    
+    \toprule[1.5pt]
+        \textbf{烟台} & \textbf{长沙} & \textbf{南昌} & \textbf{婺源} & \textbf{天津} & \textbf{上海} & \textbf{北京} & \textbf{青岛} \\ % 换页前表头
+    \midrule[0.75pt]
+    \endfirsthead
+    
+    \caption[]{跨页长表格（续）} \\ % 换页后标题
+    \toprule[1.5pt]
+        \textbf{烟台} & \textbf{长沙} & \textbf{南昌} & \textbf{婺源} & \textbf{天津} & \textbf{上海} & \textbf{北京} & \textbf{青岛} \\  % 换页后表头
+    \midrule[0.75pt]
+    \endhead
+        \bottomrule[1.5pt]
+        % \multicolumn{7}{r}{\textit{\zihao{5} \songti 接下页}} \\ 
+    \endfoot 
+    \bottomrule[1.5pt]
+    \endlastfoot
+    \label{tab:longTable}
+        Row 01 & 01-01 & 01-02 & 01-03 & 01-04 & 01-05 & 01-06 & 01-07 \\
+        Row 02 & 02-01 & 02-02 & 02-03 & 02-04 & 02-05 & 02-06 & 02-07 \\
+        Row 03 & 03-01 & 03-02 & 03-03 & 03-04 & 03-05 & 03-06 & 03-07 \\
+        Row 04 & 04-01 & 04-02 & 04-03 & 04-04 & 04-05 & 04-06 & 04-07 \\
+        Row 05 & 05-01 & 05-02 & 05-03 & 05-04 & 05-05 & 05-06 & 05-07 \\
+        Row 06 & 06-01 & 06-02 & 06-03 & 06-04 & 06-05 & 06-06 & 06-07 \\
+        Row 07 & 07-01 & 07-02 & 07-03 & 07-04 & 07-05 & 07-06 & 07-07 \\
+        Row 08 & 08-01 & 08-02 & 08-03 & 08-04 & 08-05 & 08-06 & 08-07 \\
+        Row 09 & 09-01 & 09-02 & 09-03 & 09-04 & 09-05 & 09-06 & 09-07 \\
+        Row 10 & 10-01 & 10-02 & 10-03 & 10-04 & 10-05 & 10-06 & 10-07 \\
+        Row 11 & 11-01 & 11-02 & 11-03 & 11-04 & 11-05 & 11-06 & 11-07 \\
+\end{longtable}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+\subsection{插入代码}
+\subsubsection{代码块}
+代码环境可以使用 \verb|{lstlisting}| 宏包。宏包可以自定义代码中关键字的高亮、代码块的边框、行号的样式等。代码 \ref{code:Python} 是一段 Pyhton 代码示例。具体使用请查看源文件。
+
+\vspace{-0.5em}
+\begin{lstlisting}[label=code:Python, language=Python, caption=Python 代码示例]
+sns.set(style='whitegrid', font_scale=1.3, rc={'figure.figsize': (20, 15), 'axes.edgecolor': '0.5'})
+# Create a canvas with 15 subplots
+fig, axes = plt.subplots(nrows=3, ncols=5, figsize=(26, 15), gridspec_kw={'wspace': 0.4, 'hspace': 0.4})
+# colors
+color = '#3498db'
+# plot histgram
+for i, ax in enumerate(axes.flatten()):
+    if i < len(data.columns): 
+        ax.hist(data.iloc[:, i], bins=20, color=color, edgecolor='black')
+        ax.set_title(data.columns[i], fontsize=18)  
+for i in range(len(data.columns), 3 * 5):
+    axes.flatten()[i].axis('off')
+\end{lstlisting}
+\vspace{0.1em}
+
+\subsubsection{插入伪代码}
+伪代码（算法）环境可以使用\verb|{algorithms}|宏包。算法\ref{alg:decision_tree}为演示的示例。
+\begin{algorithm}
+	\caption{Decision Tree Algorithm}
+	\label{alg:decision_tree}
+	\begin{algorithmic}[1]
+		\STATE \textbf{Input:} Training dataset $D$, set of features $F$, current node $N$
+		\STATE \textbf{Output:} Decision tree $DT$
+		
+		\IF{Stopping criteria are met for node $N$}
+			\STATE Create a leaf node with the majority class in $D$
+		\ELSE
+			\STATE Select the best feature $f$ to split on
+			\STATE Split $D$ into subsets $D_1$ and $D_2$ based on the value of feature $f$
+			\STATE Create a decision node for $N$ with the split criterion $f$
+			\STATE Recursively build the left subtree: $DT.left \leftarrow \text{BuildDecisionTree}(D_1, F, N_{\text{left}})$
+			\STATE Recursively build the right subtree: $DT.right \leftarrow \text{BuildDecisionTree}(D_2, F, N_{\text{right}})$
+		\ENDIF
+		
+		\RETURN $DT$
+	\end{algorithmic}  
+\end{algorithm}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+\section{定理环境}
+\begin{Theorem}
+\end{Theorem}
+
+\begin{Lemma}
+\end{Lemma}
+
+\begin{Corollary}
+\end{Corollary}
+
+\begin{Proposition}
+\end{Proposition}
+
+\begin{Definition}
+\end{Definition}
+
+\begin{Example}
+\end{Example}
+
+\begin{proof}
+\end{proof}
+
+\subsection{插入参考文献}
+
+模板使用 \hologo{BibTeX} 处理引用参考文献。使用时，将bibtex格式参考文献信息保存在reference.bib文件中，然后就可以在正文中直接引用，同时也会在报告的参考文献部分生成标准格式的参考文献列表，非常方便。本节主要介绍 \hologo{BibTeX} 配合 \verb|natbib| 宏包的主要使用方法\cite{mao2021correlation}。
+
+直接使用\verb|\cite{}|即可。
+
+例如：此处引用了文献\verb|\cite{noauthor_undated-qy}|。结果为：此处引用了文献~\cite{noauthor_undated-qy}。
+
+\par 引用过的文献会自动出现在报告后面的参考文献部分中。
+
+\subsubsection{顺序编码方式}
+
+在顺序编码制下，默认的 \verb|\cite{}| 命令同 \verb|\citep{}| 一样，序号置于方括号中，引文页码会放在括号外。同一处引用的连续序号会自动用短横线连接。
+
+\begin{table}[H]
+  \centering
+  \caption{顺序编码制中的对应关系}
+      \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}        %在表格中插入字符用‘@’符号
+      \verb|\cite{mao2021correlation}| & \cite{mao2021correlation}   \\
+      \verb|\citet{mao2021correlation}| & \citet{mao2021correlation} \\
+      \verb|\citep{mao2021correlation}| & \citep{mao2021correlation} \\
+      \verb|\cite[42]{mao2021correlation}| & \cite[42]{mao2021correlation}  \\
+      \verb|\cite{mao2021correlation,tang2023lrbmat}| & \cite{mao2021correlation,noauthor_undated-qy} \\
+      \end{tabular}
+\end{table}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+也可以通过 \verb|\setcitestyle{numbers}| 设置引用样式为取消上标，将数字序号作为文字的一部分。
+
+\setcitestyle{numbers} % 修改引用样式为取消上标格式
+
+\begin{table}[H]
+  \centering
+  \caption{取消上标格式的顺序编码制中的对应关系}
+      \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+      \verb|\cite{mao2021correlation}| & \cite{mao2021correlation} \\
+      \verb|\citet{mao2021correlation}| & \citet{mao2021correlation} \\
+      \verb|\citep{mao2021correlation}| & \citep{mao2021correlation} \\
+      \verb|\cite[42]{mao2021correlation}| & \cite[42]{mao2021correlation}  \\
+      \verb|\cite{mao2021correlation,tang2023lrbmat}| & \cite{mao2021correlation,noauthor_undated-qy} \\
+      \end{tabular}
+\end{table}
+\vspace{-0.7em}  % 减少表格与正文间的间距
+
+\subsubsection{著者-出版年方式}
+
+可以通过 \verb|\setcitestyle{authoryear}| 设置属性引用样式为著者-出版年制，其中 \verb|\cite{}| 
+跟 \verb|\citet{}| 效果一样。
+
+\setcitestyle{authoryear} % 修改引用样式为著者-出版年制
+
+\begin{table}[H]
+  \centering
+  \caption{著者-出版年制中的对应关系}
+      \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+      \verb|\cite{mao2021correlation}| & \cite{mao2021correlation} \\
+      \verb|\citet{张天骐2024基于}| & \citet{张天骐2024基于} \\
+      \verb|\citep{吴修振2024一种基于声波信号的室内定位方法}| & \citep{吴修振2024一种基于声波信号的室内定位方法} \\
+      \verb|\cite[42]{mao2021correlation}| & \cite[42]{mao2021correlation}  \\
+      \end{tabular}
+\end{table}
+\vspace{-0.5em}  % 减少表格与正文间的间距
+
+\setcitestyle{super} % 修改引用样式为默认
+
+\section{写在最后}
+
+\subsection{说明}
+
+本项目在\href{https://github.com/NorthSecond/SYSU_Latex_Template}{中山大学模板}的基础上进行修改，并参考了\href{https://github.com/zcyeee/HNU_LaTeX_Template}{湖南大学课程论文模板}中部分内容，感谢原作者们的辛勤付出。本模板还存在较多问题，欢迎有兴趣的同学修改完善。
+
+\subsection{发布地址}
+
+\begin{itemize}
+    \item Github: \url{https://github.com/zcyeee/HNU_LaTeX_Template}
+    \item Github: \url{https://github.com/Yangmomo1978/CUG_Report_Template}
+    \item Github: \url{https://github.com/NorthSecond/SYSU_Latex_Template}
+    \item Overleaf: \url{https://www.overleaf.com/latex/templates/sysu-latex-template/dxwrhzbydxyq}
+    \item TexPage: \\
+          \url{https://www.texpage.com/template/21db014e-5065-448c-a6f2-545b983aee2d}
+\end{itemize}
+
+% =============================================
+% Part 5： 参考文献
+% =============================================
+%在reference.bib文件中填写参考文献，此处自动生成
+
+\newpage
+%bibliographystyle{ieeetran}    %在.cls文件中已经定义了引用格式
+\bibliography{reference.bib}
+
+\newpage
+\StartAppendix % 启用附录
+
+\section{附录}
+
+附录
+
+
+\StartAcknowledgements % 启用致谢
+
+为了完成此模板，参考了众多学校的模板和设计代码，再次感谢无私奉献的开源者们!
+
+\end{document}

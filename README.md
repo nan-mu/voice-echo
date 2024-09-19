@@ -1,19 +1,43 @@
-# 回声
+<h1 align="center">
+  中国地质大学（武汉）机械与电子信息学院通信工程系非官方的课程实验模板
+</h1>
 
-代码运行在合宙的esp32c3开发板上。硬件工作的流程如下：
+<p align="center">
+  Latex Template for CUG Report
+</p>
 
-主机视角下的流程如下：
 
-1. 设备上电检查声音在指定频率范围的增益，假如没有增益执行第二步；反之设备切换为从机。
-2. 在该频段发出占空比为50%的声音。计算该频段的声音在指定周期内的占空比；当占空比为100%时，执行第三部。
-3. 保持增益的检测。关掉自己的声音，该时刻记为t0。当增益彻底消失时的时刻记为t1。
+## 介绍
+- 用于中国地质大学（武汉）（CUG）课程大作业/结课汇报的通用简易Latex模板
+- 在[中山大学模板]([https://github.com/NorthSecond/SYSU_Latex_Template])的基础上进行了修改
 
-从机视角下的流程如下：
+## 模板下载
 
-1. 此时特定频段必有占空比为50%的声音，在t2时刻输出另外50%。
-2. 当声音变回50%时，记为t3，关掉自己的声音。
+* 页面右边点击：**Clone or download -> Download Zip**
+* 还未上传至Overleaf 和 TexPage 模板，开箱即用 ☞ [Overleaf](https://www.overleaf.com/latex/templates/sysu-latex-template/dxwrhzbydxyq), [TexPage](https://www.texpage.com/template/21db014e-5065-448c-a6f2-545b983aee2d) 
 
-## 实现细节
+## 使用方法
+默认模板文件由以下四部分组成：
 
-目前的设计是，ADC由中断触发，rfft由异步管理，中断触发一定次数后软件触发异步任务。
-这样调度就是软件管理，比管理中断要方便一点。
+- `main.tex` 主文件,包含报告正文
+- `reference.bib` 参考文献列表
+- `CUGReport.sty` 文档格式控制
+- `figures` 放置图片的文件夹，模板中现在包含院校LOGO和效果预览图（缺）。
+
+使用时只需要修改 `main.tex` 和 `reference.bib` 即可，论文插图可以放在 `figures` 文件夹下，模板可以自动识别常见的插图文件夹，如 `figures`、`image`、`img` 等。
+
+--------- 
+**推荐使用[TexPage](https://www.texpage.com/)** 在线进行文档的编写和编译，无需进行本地安装。在不进行其他网络设置的情况下，国内访问的速度和稳定性也要比 Overleaf 好一些。本模板已经上传至 TexPage，可以直接进行使用，[TexPage 在线模板链接](https://www.texpage.com/template/21db014e-5065-448c-a6f2-545b983aee2d)。当然模板也上传了 Overleaf，[Overleaf 在线模板链接](https://www.overleaf.com/latex/templates/sysu-latex-template/dxwrhzbydxyq)。
+
+---------
+
+|  [封面效果图](https://github.com/NorthSecond/SYSU_Latex_Template/blob/main/figures/cug_report.png) |  [目录效果图](https://github.com/NorthSecond/Latex_Template/blob/main/figures/index.png)| 
+|:---:|:---:|
+| ![](https://github.com/NorthSecond/SYSU_Latex_Template/blob/main/figures/sysu_report.png?raw=true) | ![](https://github.com/NorthSecond/SYSU_Latex_Template/blob/main/figures/index.png?raw=true)| 
+
+## 参考
++ [中山大学模板](https://github.com/NorthSecond/SYSU_Latex_Template)
++ [国科大通用课程大作业模板](https://github.com/jweihe/UCAS_Latex_Template)
++ [GBT7714-2015标准下的BibTex样式](https://github.com/zepinglee/gbt7714-bibtex-style)
++ [国科大学位论文LaTeX模板](https://github.com/mohuangrui/ucasthesis)
++ [北京大学课程论文模板](https://www.overleaf.com/latex/templates/bei-jing-da-xue-ke-cheng-lun-wen-mo-ban/yntmqcktrzfh)
